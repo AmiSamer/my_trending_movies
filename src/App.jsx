@@ -4,6 +4,16 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import Search from './components/Search'
 
+const API_BASE_URL = 'https://api.themoviedb.org/3';
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+const API_OPTIONS = {
+  method : 'GET',
+ headers : {
+  accept : 'application/json',
+  Authorization : `Bearer ${API_KEY}`
+ }
+};
+
 
 const MyCard = ({ actors }) => {
   return (
@@ -33,6 +43,43 @@ const MyMovie = ({title}) => {
   ) 
 }
 
+
+const App = () => {
+
+  const [searchTerm, setsearchTerm] = useState('');
+  const [errorMessage, seterrorMessage] = useState('');
+
+  const fetchMovies = async () => {
+    try {
+      
+    } catch (error) {
+      console.error(`My Error ${error}`);
+      seterrorMessage('Error occurred, try again later')
+
+    }
+  }
+
+  useEffect( () => {
+
+  }, [] );
+
+  return( 
+    <main>
+      <div className="pattern"/>
+      <div className="wrapper">
+        <header>
+          <img src="./hero.png" alt="banner" />
+          <h1>Find your favourite <span className="text-gradient">Movies !</span></h1>
+        </header>
+        <Search mySearch = {searchTerm}  mySearchResult = {setsearchTerm} />
+        <h1 className="text-white">{searchTerm}</h1>
+        </div>
+    </main>
+     
+     
+  )
+}
+
 // const App = () => {
 //   return(
 //     <div>
@@ -55,25 +102,7 @@ const MyMovie = ({title}) => {
 // }
 
 
-const App = () => {
 
-  const [searchTerm, setsearchTerm] = useState('');
-  return( 
-    <main>
-      <div className="pattern"/>
-      <div className="wrapper">
-        <header>
-          <img src="./hero.png" alt="banner" />
-          <h1>Find your favourite <span className="text-gradient">Movies !</span></h1>
-        </header>
-        <Search mySearch = {searchTerm}  mySearchResult = {setsearchTerm} />
-        <h1 className="text-white">{searchTerm}</h1>
-        </div>
-    </main>
-     
-     
-  )
-}
 
 export default App
 
