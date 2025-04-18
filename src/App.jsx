@@ -4,6 +4,7 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import Search from './components/Search'
 import Loader from './components/Loader'
+import MovieCard from './components/MovieCard'
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -23,12 +24,13 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   
 
-  const fetchMovies = async () => {
+  const fetchMovies = async (query = '') => {
     setIsLoading(true);
     setErrorMessage('');
 
     try {
-      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const endpoint = query ? `${API_BASE_URL}/discover/movie?query=${ encodeURIComponent(query)}`
+      : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
       const response = await fetch(endpoint,API_OPTIONS);
 
       if(!response.ok){
@@ -47,18 +49,18 @@ const App = () => {
   }
 
   useEffect( () => {
-    fetchMovies();
-  }, [] );
+    fetchMovies(searchTerm);
+  }, [searchTerm] );
 
   return( 
     <main>
       <div className="pattern"/>
       <div className="wrapper">
         <header>
-          <img src="./hero.png" alt="banner" />
+          <img src="hero.png" alt="banner" />
           <h1>Find your favourite <span className="text-gradient">Movies !</span></h1>
           <Search mySearch = {searchTerm}  mySearchResult = {setSearchTerm} />
-          <h1 className="text-white">{searchTerm}</h1>
+          {/* <h1 className="text-white">{searchTerm}</h1> */}
         </header>
         
         <section className="all-movies">
@@ -74,9 +76,7 @@ const App = () => {
        : 
       (<ul>
         {movieList.map( (movie) => (
-          <p key={movie.id} className='text-white'>
-            {movie.title}
-          </p>
+          <MovieCard key={movie.id} myMovie ={movie} />
         ) )}
       </ul>)
     }
