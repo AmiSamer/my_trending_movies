@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -6,7 +6,7 @@ import Search from './components/Search'
 import Loader from './components/Loader'
 import MovieCard from './components/MovieCard'
 import { useDebounce } from 'react-use'
-import { updateSearchCount } from './Appwrite'
+import { updateSearchCount, getTrendingMovies } from './Appwrite'
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -25,15 +25,15 @@ const App = () => {
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [trendingMovies, setTrendingMovies] = useState([]);
 
   //debounce the search term to 'prevent' too many API request by waiting for the user to stop typing for 500 milliseconds
-  useDebounce( () => setDebouncedSearchTerm(searchTerm), 500, [searchTerm]); 
+  useDebounce( () => setDebouncedSearchTerm(searchTerm), 1200, [searchTerm]); 
   
 
   const fetchMovies = async (query = '') => {
-    setIsLoading(true);
-    setErrorMessage('');
-
+      setIsLoading(true);
+      setErrorMessage('');
     try {
       const endpoint = query ? `${API_BASE_URL}/search/movie?query=${ encodeURIComponent(query)}`
       : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
@@ -43,11 +43,12 @@ const App = () => {
         throw new Error('not ok');
       }
         const data = await response.json();
-        console.log(data);
         setMovieList(data.results || []);
 
-        updateSearchCount()
-  
+        if(query && data.results.length > 0){
+          await updateSearchCount(query, data.results[0]);
+        }
+      
     } catch (error) {
       console.error(`Error Fetching movies : ${error}`);
       setErrorMessage('Error occurred, try again later')
@@ -56,9 +57,26 @@ const App = () => {
     }
   }
 
+
+  const loadTrendingMovies = async() => {
+    try {
+     const trendMovies = await getTrendingMovies();
+    console.log(trendMovies);
+    setTrendingMovies(trendMovies);
+  
+    } catch (error) {
+      console.log(`the error is : ${error}`)
+    }
+  }
+
   useEffect( () => {
     fetchMovies(debouncedSearchTerm);
   }, [debouncedSearchTerm] );
+
+ // we use '[]' so that our function will call only at start
+  useEffect(() => {
+    loadTrendingMovies();
+  },[]);
 
   return( 
     <main>
@@ -68,11 +86,26 @@ const App = () => {
           <img src="hero.png" alt="banner" />
           <h1>Find your favourite <span className="text-gradient">Movies !</span></h1>
           <Search mySearch = {searchTerm}  mySearchResult = {setSearchTerm} />
-          {/* <h1 className="text-white">{searchTerm}</h1> */}
         </header>
+      
+        {trendingMovies.length > 0 && (
+          <section className="trending">
+            <h2 className='text-white'>Trending Movies</h2>
+          <ul>
+           {
+            trendingMovies.map( (movie, index) => (
+              <li key={movie.$id}>
+                <p>{index+1}</p>
+                <img src={movie.poster_url} alt={movie.title} />
+                </li>
+            ))
+           }
+          </ul>
+          </section>
+        )}
         
         <section className="all-movies">
-    <h2 className='mt-10'>All movies</h2>
+    <h2 >All movies</h2>
     {errorMessage && <p className="text-red-400">{errorMessage}</p>}
 
     {
